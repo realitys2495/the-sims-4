@@ -1,0 +1,62 @@
+{
+  "timestamp": "2025-12-26T12:35:18.802275",
+  "total_tests": 9,
+  "passed_tests": 8,
+  "success_rate": 88.88888888888889,
+  "results": [
+    {
+      "test": "Root API endpoint",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-26T12:35:09.789676"
+    },
+    {
+      "test": "Create download",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-26T12:35:10.467907"
+    },
+    {
+      "test": "Get download status",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-26T12:35:11.010883"
+    },
+    {
+      "test": "List downloads",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-26T12:35:11.553524"
+    },
+    {
+      "test": "Start download",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-26T12:35:12.095110"
+    },
+    {
+      "test": "Download progress simulation",
+      "success": false,
+      "details": "Progress: 100.0, Status: verified",
+      "timestamp": "2025-12-26T12:35:15.689507"
+    },
+    {
+      "test": "Pause download",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-26T12:35:17.224643"
+    },
+    {
+      "test": "Resume download",
+      "success": true,
+      "details": "",
+      "timestamp": "2025-12-26T12:35:17.764803"
+    },
+    {
+      "test": "Install endpoint (before verification)",
+      "success": true,
+      "details": "Correctly rejected unverified download",
+      "timestamp": "2025-12-26T12:35:18.301236"
+    }
+  ]
+}
