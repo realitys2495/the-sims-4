@@ -17,14 +17,15 @@ Criar um programa para PC que baixe o The Sims 4 da nuvem (Google Drive) para o 
 
 ## Architecture Completed
 
-### Backend (FastAPI + MongoDB)
-- `POST /api/downloads` - Cria novo download com URL do Google Drive
+### Backend (FastAPI + MongoDB + Google Drive API)
+- **Google Drive Integration**: Pasta configurada: `1CQVPFH5iGWJKcMRFf7ZKSjgPSxFw4ywF`
+- `GET /api/folder-info` - Lista arquivos na pasta do Google Drive
+- `POST /api/downloads` - Cria novo download da pasta configurada
 - `GET /api/downloads/{id}` - Retorna status do download
 - `GET /api/downloads` - Lista todos os downloads
-- `POST /api/downloads/{id}/start` - Inicia download
+- `POST /api/downloads/{id}/start` - Inicia download do Google Drive
 - `POST /api/downloads/{id}/pause` - Pausa download
 - `POST /api/downloads/{id}/resume` - Retoma download
-- `POST /api/downloads/{id}/install` - Inicia instalação
 - `DELETE /api/downloads/{id}` - Remove download
 
 ### Frontend (React + Tailwind + Framer Motion)
@@ -56,7 +57,8 @@ Criar um programa para PC que baixe o The Sims 4 da nuvem (Google Drive) para o 
 8. **Notificações Desktop** - Notificar quando download/instalação completar
 
 ## Tech Stack
-- **Backend**: FastAPI, Motor (MongoDB async), aiohttp
+- **Backend**: FastAPI, Motor (MongoDB async), aiohttp, google-api-python-client
 - **Frontend**: React 19, Tailwind CSS, Framer Motion, Lucide Icons
 - **Database**: MongoDB
 - **Fonts**: Fredoka (headings), Quicksand (body), JetBrains Mono (code)
+- **Google Drive**: API integration for public folder access
