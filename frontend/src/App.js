@@ -28,6 +28,23 @@ function App() {
   const [currentDownload, setCurrentDownload] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showSetup, setShowSetup] = useState(true);
+  const [folderInfo, setFolderInfo] = useState(null);
+  const [loadingFolder, setLoadingFolder] = useState(true);
+
+  // Fetch folder info on mount
+  useEffect(() => {
+    const fetchFolderInfo = async () => {
+      try {
+        const response = await axios.get(`${API}/folder-info`);
+        setFolderInfo(response.data);
+      } catch (error) {
+        console.error("Error fetching folder info:", error);
+      } finally {
+        setLoadingFolder(false);
+      }
+    };
+    fetchFolderInfo();
+  }, []);
 
   // Poll for download status
   useEffect(() => {
@@ -195,11 +212,35 @@ function App() {
             <Card className="glass border-white/10 max-w-2xl mx-auto mb-8" data-testid="setup-card">
               <CardContent className="p-8">
                 {/* Info do arquivo */}
-                <div className="flex items-center gap-3 mb-6 p-4 bg-sims-green/10 rounded-lg border border-sims-green/20">
-                  <Package className="w-8 h-8 text-sims-green" />
+                <div className={`flex items-center gap-3 mb-6 p-4 rounded-lg border ${
+                  folderInfo?.status === 'ready' 
+                    ? 'bg-sims-green/10 border-sims-green/20' 
+                    : 'bg-amber-500/10 border-amber-500/20'
+                }`}>
+                  <Package className={`w-8 h-8 ${folderInfo?.status === 'ready' ? 'text-sims-green' : 'text-amber-500'}`} />
                   <div>
-                    <h3 className="font-heading text-lg text-white">The Sims 4 - Edição Completa</h3>
-                    <p className="text-sm text-muted-foreground">76 GB • Arquivo ZIP • Será extraído automaticamente</p>
+                    {loadingFolder ? (
+                      <>
+                        <h3 className="font-heading text-lg text-white">Verificando Google Drive...</h3>
+                        <p className="text-sm text-muted-foreground">Aguarde</p>
+                      </>
+                    ) : folderInfo?.total_files > 0 ? (
+                      <>
+                        <h3 className="font-heading text-lg text-white">
+                          {folderInfo.files[0]?.name || 'The Sims 4'}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {folderInfo.total_size_gb} GB • {folderInfo.total_files} arquivo(s) • Pronto para download
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <h3 className="font-heading text-lg text-amber-500">Pasta vazia</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Adicione os arquivos do The Sims 4 na pasta do Google Drive
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -227,8 +268,12 @@ function App() {
                 <Button
                   data-testid="btn-start-download"
                   onClick={handleStartDownload}
-                  disabled={isLoading}
-                  className="w-full bg-sims-green hover:bg-sims-green-600 text-white font-heading px-8 py-6 text-lg neon-glow pulse-green"
+                  disabled={isLoading || loadingFolder || folderInfo?.total_files === 0}
+                  className={`w-full font-heading px-8 py-6 text-lg ${
+                    folderInfo?.total_files > 0 
+                      ? 'bg-sims-green hover:bg-sims-green-600 text-white neon-glow pulse-green'
+                      : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  }`}
                 >
                   {isLoading ? (
                     <motion.div
