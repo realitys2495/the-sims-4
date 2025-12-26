@@ -4,13 +4,15 @@
 Criar um programa para PC que baixe o The Sims 4 da nuvem (Google Drive) para o PC do usuário.
 
 ## User Requirements
-- **Source**: Google Drive (link direto)
+- **Source**: Google Drive (link pré-configurado no sistema)
+- **Link configurado**: https://drive.google.com/drive/folders/1CQVPFH5iGWJKcMRFf7ZKSjgPSxFw4ywF
 - **File Size**: 76 GB
 - **Features**:
   - Barra de progresso do download
   - Verificação de integridade dos arquivos (SHA-256)
-  - Instalação automática após download
+  - Extração automática do ZIP
   - Sistema de pause/resume
+  - Escolha da pasta de destino (sugestão padrão)
 - **Design**: Tema inspirado no The Sims 4
 
 ## Architecture Completed
