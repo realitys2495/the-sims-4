@@ -298,9 +298,9 @@ function App() {
               <div className="w-12 h-12 rounded-full bg-sims-green/20 flex items-center justify-center mx-auto mb-4">
                 <DownloadIcon className="w-6 h-6 text-sims-green" />
               </div>
-              <h3 className="font-heading text-lg text-white mb-2">Download Rápido</h3>
+              <h3 className="font-heading text-lg text-white mb-2">Download Direto</h3>
               <p className="text-sm text-muted-foreground">
-                Sistema otimizado para downloads grandes com suporte a pause/resume
+                Baixe diretamente da nuvem com suporte a pause/resume
               </p>
             </CardContent>
           </Card>
@@ -320,11 +320,11 @@ function App() {
           <Card className="glass border-white/10 hover:border-amber-500/50 transition-colors" data-testid="feature-card-3">
             <CardContent className="p-6 text-center">
               <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
-                <Gamepad2 className="w-6 h-6 text-amber-500" />
+                <Package className="w-6 h-6 text-amber-500" />
               </div>
-              <h3 className="font-heading text-lg text-white mb-2">Instalação Automática</h3>
+              <h3 className="font-heading text-lg text-white mb-2">Extração Automática</h3>
               <p className="text-sm text-muted-foreground">
-                Após verificação, instale com apenas um clique
+                O ZIP é extraído automaticamente na pasta escolhida
               </p>
             </CardContent>
           </Card>
