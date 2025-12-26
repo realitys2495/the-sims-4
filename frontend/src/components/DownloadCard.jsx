@@ -55,7 +55,7 @@ const HashAnimation = ({ hash, isCalculating }) => {
   );
 };
 
-export const DownloadCard = ({ download, onStart, onPause, onResume, onInstall }) => {
+export const DownloadCard = ({ download, downloadPath, onPause, onResume, onInstall }) => {
   const [isHovered, setIsHovered] = useState(false);
   
   const status = download?.status || 'idle';
@@ -97,9 +97,11 @@ export const DownloadCard = ({ download, onStart, onPause, onResume, onInstall }
       case 'verifying':
         return 'Verificando integridade...';
       case 'verified':
-        return 'Verificado! Pronto para instalar';
+        return 'Verificado! Extraindo...';
+      case 'extracting':
+        return 'Extraindo arquivos ZIP...';
       case 'installing':
-        return 'Instalando...';
+        return 'Finalizando instalação...';
       case 'completed':
         return 'Instalação concluída!';
       case 'error':
@@ -146,6 +148,9 @@ export const DownloadCard = ({ download, onStart, onPause, onResume, onInstall }
                   {download?.filename || 'The Sims 4'}
                 </h3>
                 <p className="text-sm text-muted-foreground">{getStatusText()}</p>
+                {downloadPath && (
+                  <p className="text-xs text-sims-blue font-mono mt-1">{downloadPath}</p>
+                )}
               </div>
             </div>
             <div className="text-right">
@@ -230,17 +235,6 @@ export const DownloadCard = ({ download, onStart, onPause, onResume, onInstall }
 
           {/* Action Buttons */}
           <div className="flex gap-4 justify-center">
-            {status === 'idle' && (
-              <Button
-                data-testid="btn-download"
-                onClick={onStart}
-                className="bg-sims-green hover:bg-sims-green-600 text-white px-8 py-6 text-lg font-heading neon-glow pulse-green"
-              >
-                <Download className="w-5 h-5 mr-2" />
-                Iniciar Download
-              </Button>
-            )}
-
             {status === 'downloading' && (
               <Button
                 data-testid="btn-pause"
@@ -265,14 +259,17 @@ export const DownloadCard = ({ download, onStart, onPause, onResume, onInstall }
             )}
 
             {status === 'verified' && (
-              <Button
-                data-testid="btn-install"
-                onClick={onInstall}
-                className="bg-sims-blue hover:bg-blue-600 text-white px-8 py-6 text-lg font-heading neon-glow-blue"
-              >
-                <Package className="w-5 h-5 mr-2" />
-                Instalar Agora
-              </Button>
+              <div className="flex items-center gap-2 text-sims-blue">
+                <Package className="w-6 h-6 animate-bounce" />
+                <span className="font-heading text-lg">Extraindo arquivos...</span>
+              </div>
+            )}
+
+            {status === 'extracting' && (
+              <div className="flex items-center gap-2 text-sims-blue">
+                <Loader2 className="w-6 h-6 animate-spin" />
+                <span className="font-heading text-lg">Extraindo The Sims 4...</span>
+              </div>
             )}
 
             {status === 'completed' && (
@@ -285,7 +282,7 @@ export const DownloadCard = ({ download, onStart, onPause, onResume, onInstall }
             {status === 'installing' && (
               <div className="flex items-center gap-2 text-sims-blue">
                 <Loader2 className="w-6 h-6 animate-spin" />
-                <span className="font-heading text-lg">Instalando The Sims 4...</span>
+                <span className="font-heading text-lg">Finalizando instalação...</span>
               </div>
             )}
           </div>
