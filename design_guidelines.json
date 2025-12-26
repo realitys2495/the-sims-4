@@ -1,0 +1,115 @@
+{
+  "identity": {
+    "name": "E1: The Anti-AI Designer",
+    "mission": "Create a Sims 4 downloader that feels like a premium game launcher, not a generic file host.",
+    "tone": "Playful, Immersive, Trustworthy, 'Architectural'",
+    "archetype": "Organic & Earthy (Sims Nature) x Electric & Neon (Gamer Tech)"
+  },
+  "typography": {
+    "heading_font": "Fredoka",
+    "body_font": "Quicksand",
+    "mono_font": "JetBrains Mono",
+    "google_fonts_import": "https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Quicksand:wght@300..700&family=JetBrains+Mono:wght@400;700&display=swap",
+    "usage": {
+      "h1": "text-5xl md:text-7xl font-bold tracking-tight font-heading text-primary",
+      "h2": "text-3xl md:text-4xl font-semibold tracking-tight font-heading",
+      "body": "text-base md:text-lg font-body leading-relaxed",
+      "data": "text-sm font-mono tracking-wide text-muted-foreground"
+    }
+  },
+  "colors": {
+    "palette": {
+      "primary": "#10A316",
+      "primary_hover": "#0D8A12",
+      "secondary": "#00A4E4",
+      "accent": "#E4002B",
+      "background_light": "#F3F4F6",
+      "background_dark": "#0B0F19",
+      "surface_light": "#FFFFFF",
+      "surface_dark": "#151B2B",
+      "plumbob_green": "#4C9F38",
+      "plumbob_red": "#C0392B"
+    },
+    "tailwind_config_extension": {
+      "colors": {
+        "sims-green": {
+          "DEFAULT": "#10A316",
+          "50": "#E7F6E8",
+          "100": "#CFF0D1",
+          "500": "#10A316",
+          "900": "#052D06"
+        },
+        "sims-blue": "#00A4E4",
+        "dark-void": "#0B0F19"
+      }
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": "backdrop-blur-xl bg-white/70 dark:bg-black/60 border border-white/20 shadow-xl",
+    "neon_glow": "shadow-[0_0_20px_rgba(16,163,22,0.4)]",
+    "plumbob_shape": "clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+    "texture": "bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"
+  },
+  "layout_strategy": {
+    "grid_system": "Bento Grid (Mode A)",
+    "spacing": "Generous (p-8 to p-12)",
+    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "z_index": {
+      "background": "-10",
+      "content": "10",
+      "overlay": "50",
+      "toast": "100"
+    }
+  },
+  "components": {
+    "hero_section": {
+      "description": "Split layout. Left: 'The Sims 4' massive text. Right: Floating Plumbob (CSS or Image).",
+      "bg_image": "https://images.unsplash.com/photo-1712901523303-a7703c916631?q=80&w=2070&auto=format&fit=crop",
+      "overlay": "bg-gradient-to-r from-background via-background/90 to-transparent"
+    },
+    "download_card": {
+      "style": "Glassmorphism panel, centered or floating.",
+      "elements": [
+        "Progress Bar (Thick, Green, Animated Stripes)",
+        "Speedometer (Mono font)",
+        "Pause/Resume Button (Pill shaped, pulsing)",
+        "Integrity Shield Icon"
+      ]
+    },
+    "status_grid": {
+      "style": "Bento grid of 3-4 cards showing: Disk Space, Network Speed, Time Remaining, Integrity Status."
+    }
+  },
+  "assets": {
+    "images": {
+      "hero_bg": "https://images.unsplash.com/photo-1712901523303-a7703c916631?q=80&w=2070&auto=format&fit=crop",
+      "plumbob_abstract": "https://images.unsplash.com/photo-1741496022304-d528adab2da5?q=80&w=1974&auto=format&fit=crop",
+      "texture_noise": "https://grainy-gradients.vercel.app/noise.svg"
+    },
+    "icons": "Lucide React (Download, Pause, Play, ShieldCheck, Wifi, HardDrive)"
+  },
+  "motion": {
+    "entrance": "framer-motion: initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}",
+    "hover": "scale-105 transition-transform duration-200 ease-out",
+    "pulse": "animate-pulse",
+    "spin_slow": "animate-[spin_10s_linear_infinite]"
+  },
+  "instructions_to_main_agent": [
+    "1. SETUP: Install 'framer-motion', 'lucide-react', 'clsx', 'tailwind-merge' if not present.",
+    "2. FONTS: Add the Google Fonts import to 'index.css' immediately.",
+    "3. TAILWIND: Update 'tailwind.config.js' with the 'sims-green' and 'font-heading'/'font-body' families.",
+    "4. LAYOUT: Create a 'Layout.js' that handles the background image and overlay. The background should be fixed.",
+    "5. PLUMBOB: Try to create a CSS-only Plumbob using two pyramids (divs with borders) rotating. If too complex, use the 'plumbob_abstract' image with a floating animation.",
+    "6. DOWNLOADER: The progress bar is the 'Hero'. Make it big. Use a gradient from Sims Green to Teal.",
+    "7. INTEGRITY: Show a 'calculating' state with a hash animation (random characters changing) before showing 'Verified'.",
+    "8. THEME: Default to Dark Mode for the 'Gamer' vibe, but allow a toggle. Use the 'dark-void' color for the background.",
+    "9. DATA-TESTID: Add 'data-testid' to the Download Button ('btn-download'), Pause Button ('btn-pause'), and Progress Bar ('progress-bar')."
+  ],
+  "universal_guidelines": [
+    "Avoid generic centered layouts. Use asymmetry.",
+    "Use 2-3x more spacing than typical.",
+    "Micro-animations for every interaction.",
+    "No 'AI slop' aesthetics (generic gradients). Use texture and noise.",
+    "Ensure high contrast for accessibility."
+  ]
+}
