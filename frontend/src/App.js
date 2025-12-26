@@ -12,23 +12,27 @@ import {
   Gamepad2, 
   Sparkles, 
   Download as DownloadIcon,
-  ExternalLink
+  FolderOpen,
+  Package
 } from "lucide-react";
 import "@/App.css";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Link do Google Drive já configurado
+const GOOGLE_DRIVE_URL = "https://drive.google.com/drive/folders/1CQVPFH5iGWJKcMRFf7ZKSjgPSxFw4ywF?usp=drive_link";
+
 function App() {
-  const [driveUrl, setDriveUrl] = useState("");
+  const [downloadPath, setDownloadPath] = useState("C:\\Users\\Downloads\\TheSims4");
   const [currentDownload, setCurrentDownload] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showUrlInput, setShowUrlInput] = useState(true);
+  const [showSetup, setShowSetup] = useState(true);
 
   // Poll for download status
   useEffect(() => {
     let interval;
-    if (currentDownload?.id && ['downloading', 'verifying', 'installing'].includes(currentDownload.status)) {
+    if (currentDownload?.id && ['downloading', 'verifying', 'extracting', 'installing'].includes(currentDownload.status)) {
       interval = setInterval(async () => {
         try {
           const response = await axios.get(`${API}/downloads/${currentDownload.id}`);
@@ -36,12 +40,16 @@ function App() {
           
           if (response.data.status === 'completed') {
             toast.success("The Sims 4 instalado com sucesso!", {
-              description: "Divirta-se jogando!"
+              description: `Instalado em: ${downloadPath}`
             });
             clearInterval(interval);
           } else if (response.data.status === 'verified') {
             toast.success("Download verificado!", {
-              description: "Clique em 'Instalar Agora' para continuar"
+              description: "Extraindo arquivos..."
+            });
+          } else if (response.data.status === 'extracting') {
+            toast.info("Extraindo arquivos ZIP...", {
+              description: "Aguarde a extração completar"
             });
           }
         } catch (error) {
@@ -50,44 +58,39 @@ function App() {
       }, 500);
     }
     return () => clearInterval(interval);
-  }, [currentDownload?.id, currentDownload?.status]);
+  }, [currentDownload?.id, currentDownload?.status, downloadPath]);
 
-  const handleCreateDownload = async () => {
-    if (!driveUrl.trim()) {
-      toast.error("Por favor, insira um link do Google Drive");
+  const handleStartDownload = async () => {
+    if (!downloadPath.trim()) {
+      toast.error("Por favor, escolha uma pasta de destino");
       return;
     }
 
     setIsLoading(true);
     try {
+      // Criar download com link pré-configurado
       const response = await axios.post(`${API}/downloads`, {
-        google_drive_url: driveUrl,
-        filename: "TheSims4.zip"
+        google_drive_url: GOOGLE_DRIVE_URL,
+        filename: "TheSims4.zip",
+        download_path: downloadPath
       });
       setCurrentDownload(response.data);
-      setShowUrlInput(false);
-      toast.success("Download preparado!", {
-        description: "Clique em 'Iniciar Download' para começar"
+      setShowSetup(false);
+      
+      // Iniciar download automaticamente
+      await axios.post(`${API}/downloads/${response.data.id}/start`);
+      setCurrentDownload(prev => ({ ...prev, status: 'downloading' }));
+      
+      toast.success("Download iniciado!", {
+        description: `Salvando em: ${downloadPath}`
       });
     } catch (error) {
-      console.error("Error creating download:", error);
-      toast.error("Erro ao preparar download", {
+      console.error("Error starting download:", error);
+      toast.error("Erro ao iniciar download", {
         description: error.response?.data?.detail || "Tente novamente"
       });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleStart = async () => {
-    if (!currentDownload?.id) return;
-    try {
-      await axios.post(`${API}/downloads/${currentDownload.id}/start`);
-      setCurrentDownload(prev => ({ ...prev, status: 'downloading' }));
-      toast.info("Download iniciado!");
-    } catch (error) {
-      console.error("Error starting download:", error);
-      toast.error("Erro ao iniciar download");
     }
   };
 
@@ -129,8 +132,8 @@ function App() {
 
   const handleReset = () => {
     setCurrentDownload(null);
-    setDriveUrl("");
-    setShowUrlInput(true);
+    setDownloadPath("C:\\Users\\Downloads\\TheSims4");
+    setShowSetup(true);
   };
 
   return (
@@ -183,53 +186,70 @@ function App() {
           </p>
         </motion.div>
 
-        {/* URL Input Section */}
-        {showUrlInput && !currentDownload && (
+        {/* Download Setup Section */}
+        {showSetup && !currentDownload && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            <Card className="glass border-white/10 max-w-2xl mx-auto mb-8" data-testid="url-input-card">
+            <Card className="glass border-white/10 max-w-2xl mx-auto mb-8" data-testid="setup-card">
               <CardContent className="p-8">
-                <div className="flex items-center gap-2 mb-6">
-                  <ExternalLink className="w-5 h-5 text-sims-green" />
-                  <h2 className="font-heading text-xl text-white">Link do Google Drive</h2>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Input
-                    data-testid="drive-url-input"
-                    type="text"
-                    placeholder="https://drive.google.com/file/d/..."
-                    value={driveUrl}
-                    onChange={(e) => setDriveUrl(e.target.value)}
-                    className="flex-1 bg-surface-dark border-white/10 text-white placeholder:text-muted-foreground focus:border-sims-green focus:ring-sims-green"
-                  />
-                  <Button
-                    data-testid="prepare-download-btn"
-                    onClick={handleCreateDownload}
-                    disabled={isLoading}
-                    className="bg-sims-green hover:bg-sims-green-600 text-white font-heading px-6 neon-glow"
-                  >
-                    {isLoading ? (
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      >
-                        <DownloadIcon className="w-5 h-5" />
-                      </motion.div>
-                    ) : (
-                      <>
-                        <DownloadIcon className="w-5 h-5 mr-2" />
-                        Preparar
-                      </>
-                    )}
-                  </Button>
+                {/* Info do arquivo */}
+                <div className="flex items-center gap-3 mb-6 p-4 bg-sims-green/10 rounded-lg border border-sims-green/20">
+                  <Package className="w-8 h-8 text-sims-green" />
+                  <div>
+                    <h3 className="font-heading text-lg text-white">The Sims 4 - Edição Completa</h3>
+                    <p className="text-sm text-muted-foreground">76 GB • Arquivo ZIP • Será extraído automaticamente</p>
+                  </div>
                 </div>
 
-                <p className="text-xs text-muted-foreground mt-4">
-                  Cole o link compartilhado do Google Drive onde o arquivo The Sims 4 está armazenado
+                {/* Pasta de destino */}
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <FolderOpen className="w-5 h-5 text-sims-blue" />
+                    <label className="font-heading text-lg text-white">Onde deseja instalar?</label>
+                  </div>
+                  
+                  <Input
+                    data-testid="download-path-input"
+                    type="text"
+                    placeholder="C:\Games\TheSims4"
+                    value={downloadPath}
+                    onChange={(e) => setDownloadPath(e.target.value)}
+                    className="bg-surface-dark border-white/10 text-white placeholder:text-muted-foreground focus:border-sims-green focus:ring-sims-green font-mono text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    O jogo será baixado e extraído nesta pasta
+                  </p>
+                </div>
+
+                {/* Botão de download */}
+                <Button
+                  data-testid="btn-start-download"
+                  onClick={handleStartDownload}
+                  disabled={isLoading}
+                  className="w-full bg-sims-green hover:bg-sims-green-600 text-white font-heading px-8 py-6 text-lg neon-glow pulse-green"
+                >
+                  {isLoading ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="flex items-center gap-2"
+                    >
+                      <DownloadIcon className="w-6 h-6" />
+                      <span>Preparando...</span>
+                    </motion.div>
+                  ) : (
+                    <>
+                      <DownloadIcon className="w-6 h-6 mr-2" />
+                      Baixar The Sims 4
+                    </>
+                  )}
+                </Button>
+
+                <p className="text-xs text-center text-muted-foreground mt-4">
+                  Ao clicar, o download iniciará automaticamente da nuvem
                 </p>
               </CardContent>
             </Card>
@@ -241,7 +261,7 @@ function App() {
           <div className="mb-8">
             <DownloadCard
               download={currentDownload}
-              onStart={handleStart}
+              downloadPath={downloadPath}
               onPause={handlePause}
               onResume={handleResume}
               onInstall={handleInstall}
