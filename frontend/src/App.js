@@ -20,8 +20,8 @@ import "@/App.css";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Link do Google Drive já configurado
-const GOOGLE_DRIVE_URL = "https://drive.google.com/drive/folders/1CQVPFH5iGWJKcMRFf7ZKSjgPSxFw4ywF?usp=drive_link";
+// Link do Google Drive já configurado no backend
+const GOOGLE_DRIVE_FOLDER = "The Sims 4 - Google Drive";
 
 function App() {
   const [downloadPath, setDownloadPath] = useState("C:\\Users\\Downloads\\TheSims4");
@@ -68,9 +68,8 @@ function App() {
 
     setIsLoading(true);
     try {
-      // Criar download com link pré-configurado
+      // Criar download usando pasta do Google Drive pré-configurada
       const response = await axios.post(`${API}/downloads`, {
-        google_drive_url: GOOGLE_DRIVE_URL,
         filename: "TheSims4.zip",
         download_path: downloadPath
       });
@@ -82,12 +81,12 @@ function App() {
       setCurrentDownload(prev => ({ ...prev, status: 'downloading' }));
       
       toast.success("Download iniciado!", {
-        description: `Salvando em: ${downloadPath}`
+        description: `Baixando do Google Drive para: ${downloadPath}`
       });
     } catch (error) {
       console.error("Error starting download:", error);
       toast.error("Erro ao iniciar download", {
-        description: error.response?.data?.detail || "Tente novamente"
+        description: error.response?.data?.detail || "Verifique sua conexão e tente novamente"
       });
     } finally {
       setIsLoading(false);
