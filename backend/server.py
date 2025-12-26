@@ -377,10 +377,15 @@ async def get_folder_info():
     """Get information about files in the configured Google Drive folder"""
     try:
         files = await list_folder_files(GOOGLE_DRIVE_FOLDER_ID)
+        total_size = sum(f.get('size', 0) for f in files)
         return {
             "folder_id": GOOGLE_DRIVE_FOLDER_ID,
             "files": files,
-            "total_files": len(files)
+            "total_files": len(files),
+            "total_size": total_size,
+            "total_size_gb": round(total_size / (1024**3), 2),
+            "status": "ready" if files else "empty",
+            "message": "Arquivos prontos para download" if files else "Pasta vazia - aguardando arquivos"
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -393,12 +398,18 @@ async def create_download(download: DownloadCreate):
     files = await list_folder_files(GOOGLE_DRIVE_FOLDER_ID)
     
     if not files:
-        raise HTTPException(status_code=404, detail="No files found in the Google Drive folder")
+        raise HTTPException(
+            status_code=404, 
+            detail="A pasta do Google Drive está vazia. Adicione os arquivos do The Sims 4 primeiro."
+        )
     
     # Use the first file (or find the largest one)
-    file_info = files[0]
+    # Sort by size to get the largest file (main game file)
+    files_sorted = sorted(files, key=lambda x: x.get('size', 0), reverse=True)
+    file_info = files_sorted[0]
+    
     file_id = file_info.get("id", GOOGLE_DRIVE_FOLDER_ID)
-    file_size = int(file_info.get("size", 81604378624))
+    file_size = int(file_info.get("size", 0))
     filename = file_info.get("name", download.filename or "TheSims4.zip")
     
     status = DownloadStatus(
