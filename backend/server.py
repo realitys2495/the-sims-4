@@ -38,18 +38,20 @@ class DownloadStatus(BaseModel):
     total_size: int = 0
     downloaded_size: int = 0
     progress: float = 0.0
-    status: str = "idle"  # idle, downloading, paused, verifying, verified, error, completed
+    status: str = "idle"  # idle, downloading, paused, verifying, verified, extracting, installing, completed, error
     speed: float = 0.0
     eta: str = "--:--:--"
     checksum_status: str = "pending"
     checksum_calculated: Optional[str] = None
     google_drive_url: Optional[str] = None
+    download_path: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class DownloadCreate(BaseModel):
     google_drive_url: str
     filename: Optional[str] = "TheSims4.zip"
+    download_path: Optional[str] = "C:\\Users\\Downloads\\TheSims4"
 
 # Global download state
 download_tasks = {}
@@ -105,6 +107,7 @@ async def create_download(download: DownloadCreate):
         filename=download.filename or file_info.get("filename", "TheSims4.zip"),
         total_size=file_info.get("size", 81604378624),
         google_drive_url=download.google_drive_url,
+        download_path=download.download_path,
         status="idle"
     )
     
@@ -223,6 +226,42 @@ async def simulate_download(download_id: str, total_size: int):
             "checksum_status": "verified",
             "checksum_calculated": fake_checksum,
             "progress": 100,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Auto-start extraction after verification
+    await asyncio.sleep(1)
+    await simulate_extraction(download_id)
+
+async def simulate_extraction(download_id: str):
+    """Simulate ZIP extraction process"""
+    await db.downloads.update_one(
+        {"id": download_id},
+        {"$set": {
+            "status": "extracting",
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Simulate extraction time
+    await asyncio.sleep(4)
+    
+    # Extraction complete, finalize installation
+    await db.downloads.update_one(
+        {"id": download_id},
+        {"$set": {
+            "status": "installing",
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    await asyncio.sleep(2)
+    
+    await db.downloads.update_one(
+        {"id": download_id},
+        {"$set": {
+            "status": "completed",
             "updated_at": datetime.now(timezone.utc).isoformat()
         }}
     )
