@@ -1,52 +1,325 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
 import axios from "axios";
+import { Plumbob } from "./components/Plumbob";
+import { DownloadCard } from "./components/DownloadCard";
+import { Button } from "./components/ui/button";
+import { Input } from "./components/ui/input";
+import { Card, CardContent } from "./components/ui/card";
+import { Toaster } from "./components/ui/sonner";
+import { toast } from "sonner";
+import { 
+  Gamepad2, 
+  Sparkles, 
+  Download as DownloadIcon,
+  ExternalLink
+} from "lucide-react";
+import "@/App.css";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Home = () => {
-  const helloWorldApi = async () => {
+function App() {
+  const [driveUrl, setDriveUrl] = useState("");
+  const [currentDownload, setCurrentDownload] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showUrlInput, setShowUrlInput] = useState(true);
+
+  // Poll for download status
+  useEffect(() => {
+    let interval;
+    if (currentDownload?.id && ['downloading', 'verifying', 'installing'].includes(currentDownload.status)) {
+      interval = setInterval(async () => {
+        try {
+          const response = await axios.get(`${API}/downloads/${currentDownload.id}`);
+          setCurrentDownload(response.data);
+          
+          if (response.data.status === 'completed') {
+            toast.success("The Sims 4 instalado com sucesso!", {
+              description: "Divirta-se jogando!"
+            });
+            clearInterval(interval);
+          } else if (response.data.status === 'verified') {
+            toast.success("Download verificado!", {
+              description: "Clique em 'Instalar Agora' para continuar"
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching status:", error);
+        }
+      }, 500);
+    }
+    return () => clearInterval(interval);
+  }, [currentDownload?.id, currentDownload?.status]);
+
+  const handleCreateDownload = async () => {
+    if (!driveUrl.trim()) {
+      toast.error("Por favor, insira um link do Google Drive");
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+      const response = await axios.post(`${API}/downloads`, {
+        google_drive_url: driveUrl,
+        filename: "TheSims4.zip"
+      });
+      setCurrentDownload(response.data);
+      setShowUrlInput(false);
+      toast.success("Download preparado!", {
+        description: "Clique em 'Iniciar Download' para começar"
+      });
+    } catch (error) {
+      console.error("Error creating download:", error);
+      toast.error("Erro ao preparar download", {
+        description: error.response?.data?.detail || "Tente novamente"
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  const handleStart = async () => {
+    if (!currentDownload?.id) return;
+    try {
+      await axios.post(`${API}/downloads/${currentDownload.id}/start`);
+      setCurrentDownload(prev => ({ ...prev, status: 'downloading' }));
+      toast.info("Download iniciado!");
+    } catch (error) {
+      console.error("Error starting download:", error);
+      toast.error("Erro ao iniciar download");
+    }
+  };
+
+  const handlePause = async () => {
+    if (!currentDownload?.id) return;
+    try {
+      await axios.post(`${API}/downloads/${currentDownload.id}/pause`);
+      setCurrentDownload(prev => ({ ...prev, status: 'paused' }));
+      toast.info("Download pausado");
+    } catch (error) {
+      console.error("Error pausing download:", error);
+      toast.error("Erro ao pausar download");
+    }
+  };
+
+  const handleResume = async () => {
+    if (!currentDownload?.id) return;
+    try {
+      await axios.post(`${API}/downloads/${currentDownload.id}/resume`);
+      setCurrentDownload(prev => ({ ...prev, status: 'downloading' }));
+      toast.info("Download retomado!");
+    } catch (error) {
+      console.error("Error resuming download:", error);
+      toast.error("Erro ao retomar download");
+    }
+  };
+
+  const handleInstall = async () => {
+    if (!currentDownload?.id) return;
+    try {
+      await axios.post(`${API}/downloads/${currentDownload.id}/install`);
+      setCurrentDownload(prev => ({ ...prev, status: 'installing' }));
+      toast.info("Instalação iniciada!");
+    } catch (error) {
+      console.error("Error installing:", error);
+      toast.error("Erro ao iniciar instalação");
+    }
+  };
+
+  const handleReset = () => {
+    setCurrentDownload(null);
+    setDriveUrl("");
+    setShowUrlInput(true);
+  };
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
+    <div className="min-h-screen bg-dark-void relative overflow-hidden noise-overlay" data-testid="app-container">
+      <Toaster position="top-right" richColors />
+      
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-sims-green/10 via-transparent to-sims-blue/5 pointer-events-none" />
+      
+      {/* Animated background elements */}
+      <div className="absolute top-20 right-20 opacity-20">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
         >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+          <Sparkles className="w-32 h-32 text-sims-green" />
+        </motion.div>
+      </div>
+      
+      <div className="absolute bottom-20 left-20 opacity-10">
+        <motion.div
+          animate={{ rotate: -360 }}
+          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+        >
+          <Gamepad2 className="w-48 h-48 text-sims-blue" />
+        </motion.div>
+      </div>
 
-function App() {
-  return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      {/* Main Content */}
+      <div className="relative z-10 container mx-auto px-4 py-12 max-w-5xl">
+        {/* Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <div className="flex justify-center mb-8">
+            <Plumbob size={100} status={currentDownload?.status || 'idle'} />
+          </div>
+          
+          <h1 className="font-heading text-5xl md:text-7xl font-bold text-white mb-4 tracking-tight">
+            The Sims 4
+          </h1>
+          <p className="font-heading text-2xl md:text-3xl text-sims-green mb-2">
+            Downloader
+          </p>
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+            Baixe e instale The Sims 4 diretamente do Google Drive com verificação de integridade
+          </p>
+        </motion.div>
+
+        {/* URL Input Section */}
+        {showUrlInput && !currentDownload && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
+            <Card className="glass border-white/10 max-w-2xl mx-auto mb-8" data-testid="url-input-card">
+              <CardContent className="p-8">
+                <div className="flex items-center gap-2 mb-6">
+                  <ExternalLink className="w-5 h-5 text-sims-green" />
+                  <h2 className="font-heading text-xl text-white">Link do Google Drive</h2>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Input
+                    data-testid="drive-url-input"
+                    type="text"
+                    placeholder="https://drive.google.com/file/d/..."
+                    value={driveUrl}
+                    onChange={(e) => setDriveUrl(e.target.value)}
+                    className="flex-1 bg-surface-dark border-white/10 text-white placeholder:text-muted-foreground focus:border-sims-green focus:ring-sims-green"
+                  />
+                  <Button
+                    data-testid="prepare-download-btn"
+                    onClick={handleCreateDownload}
+                    disabled={isLoading}
+                    className="bg-sims-green hover:bg-sims-green-600 text-white font-heading px-6 neon-glow"
+                  >
+                    {isLoading ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      >
+                        <DownloadIcon className="w-5 h-5" />
+                      </motion.div>
+                    ) : (
+                      <>
+                        <DownloadIcon className="w-5 h-5 mr-2" />
+                        Preparar
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                <p className="text-xs text-muted-foreground mt-4">
+                  Cole o link compartilhado do Google Drive onde o arquivo The Sims 4 está armazenado
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Download Card */}
+        {currentDownload && (
+          <div className="mb-8">
+            <DownloadCard
+              download={currentDownload}
+              onStart={handleStart}
+              onPause={handlePause}
+              onResume={handleResume}
+              onInstall={handleInstall}
+            />
+            
+            {currentDownload.status === 'completed' && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center mt-6"
+              >
+                <Button
+                  data-testid="new-download-btn"
+                  onClick={handleReset}
+                  variant="outline"
+                  className="border-white/20 text-white hover:bg-white/10"
+                >
+                  Novo Download
+                </Button>
+              </motion.div>
+            )}
+          </div>
+        )}
+
+        {/* Features Grid */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12"
+        >
+          <Card className="glass border-white/10 hover:border-sims-green/50 transition-colors" data-testid="feature-card-1">
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-sims-green/20 flex items-center justify-center mx-auto mb-4">
+                <DownloadIcon className="w-6 h-6 text-sims-green" />
+              </div>
+              <h3 className="font-heading text-lg text-white mb-2">Download Rápido</h3>
+              <p className="text-sm text-muted-foreground">
+                Sistema otimizado para downloads grandes com suporte a pause/resume
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="glass border-white/10 hover:border-sims-blue/50 transition-colors" data-testid="feature-card-2">
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-sims-blue/20 flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-6 h-6 text-sims-blue" />
+              </div>
+              <h3 className="font-heading text-lg text-white mb-2">Verificação SHA-256</h3>
+              <p className="text-sm text-muted-foreground">
+                Garante que seus arquivos estão íntegros e sem corrupção
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="glass border-white/10 hover:border-amber-500/50 transition-colors" data-testid="feature-card-3">
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
+                <Gamepad2 className="w-6 h-6 text-amber-500" />
+              </div>
+              <h3 className="font-heading text-lg text-white mb-2">Instalação Automática</h3>
+              <p className="text-sm text-muted-foreground">
+                Após verificação, instale com apenas um clique
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Footer */}
+        <motion.footer
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="text-center mt-16 text-muted-foreground text-sm"
+        >
+          <p>The Sims 4 Downloader • Feito com Sul Sul</p>
+        </motion.footer>
+      </div>
     </div>
   );
 }

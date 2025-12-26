@@ -1,34 +1,106 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* The Sims 4 Downloader Styles */
+
+.App {
+  min-height: 100vh;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+/* Custom scrollbar for the app */
+.App ::-webkit-scrollbar {
+  width: 8px;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.App ::-webkit-scrollbar-track {
+  background: #0B0F19;
 }
 
-.App-link {
-    color: #61dafb;
+.App ::-webkit-scrollbar-thumb {
+  background: #10A316;
+  border-radius: 4px;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.App ::-webkit-scrollbar-thumb:hover {
+  background: #0D8A12;
+}
+
+/* Input focus states */
+input:focus {
+  outline: none;
+  border-color: #10A316 !important;
+  box-shadow: 0 0 0 2px rgba(16, 163, 22, 0.2) !important;
+}
+
+/* Button hover effects */
+button {
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Card hover effects */
+.glass:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Loading animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.loading-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Glow effects */
+.glow-green {
+  box-shadow: 0 0 20px rgba(16, 163, 22, 0.5);
+}
+
+.glow-blue {
+  box-shadow: 0 0 20px rgba(0, 164, 228, 0.5);
+}
+
+/* Text selection */
+::selection {
+  background: rgba(16, 163, 22, 0.3);
+  color: white;
+}
+
+/* Prevent text selection on interactive elements */
+button, .no-select {
+  user-select: none;
+}
+
+/* Smooth transitions for all elements */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Remove outline on focus for styled elements */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid #10A316;
+  outline-offset: 2px;
 }
