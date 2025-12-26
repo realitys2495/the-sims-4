@@ -80,39 +80,45 @@ def get_direct_download_url(file_id: str) -> str:
     return f"https://drive.google.com/uc?export=download&id={file_id}&confirm=t"
 
 async def list_folder_files(folder_id: str) -> List[dict]:
-    """List files in a Google Drive folder using web scraping approach for public folders"""
+    """List files in a Google Drive folder using Google Drive API"""
     files = []
+    api_key = os.environ.get("GOOGLE_API_KEY", "")
     
-    # Try to get folder contents via the embed/view page
-    folder_url = f"https://drive.google.com/drive/folders/{folder_id}"
+    if not api_key:
+        logging.warning("No Google API Key configured, using placeholder")
+        return [{
+            "id": folder_id,
+            "name": "TheSims4.zip",
+            "size": 81604378624,
+            "mimeType": "application/zip"
+        }]
     
     async with aiohttp.ClientSession() as session:
         try:
-            # Use the Google Drive API export endpoint to list files
-            # For public folders, we can use a different approach
-            api_url = f"https://www.googleapis.com/drive/v3/files"
+            # Use Google Drive API v3 to list files in folder
+            api_url = "https://www.googleapis.com/drive/v3/files"
             params = {
-                "q": f"'{folder_id}' in parents",
-                "key": os.environ.get("GOOGLE_API_KEY", ""),  # Optional API key
-                "fields": "files(id,name,size,mimeType)"
+                "q": f"'{folder_id}' in parents and trashed=false",
+                "key": api_key,
+                "fields": "files(id,name,size,mimeType)",
+                "pageSize": 100
             }
-            
-            # If no API key, try direct access
-            if not params["key"]:
-                # For public shared folders, we'll return placeholder info
-                # The actual download will work via direct link
-                return [{
-                    "id": folder_id,
-                    "name": "TheSims4.zip",
-                    "size": 81604378624,  # 76 GB
-                    "mimeType": "application/zip"
-                }]
             
             async with session.get(api_url, params=params) as response:
                 if response.status == 200:
                     data = await response.json()
                     files = data.get("files", [])
+                    logging.info(f"Found {len(files)} files in Google Drive folder")
+                    
+                    # Convert size to int
+                    for f in files:
+                        if 'size' in f:
+                            f['size'] = int(f['size'])
+                        else:
+                            f['size'] = 0
                 else:
+                    error_text = await response.text()
+                    logging.error(f"Google Drive API error: {response.status} - {error_text}")
                     # Fallback to placeholder
                     files = [{
                         "id": folder_id,
